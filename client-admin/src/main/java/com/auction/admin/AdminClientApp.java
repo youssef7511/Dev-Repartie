@@ -8,6 +8,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -51,7 +52,6 @@ public class AdminClientApp extends Application {
     private TextArea logArea;
     private VBox controlsBox;
     private Timeline clientsRefreshTimeline;
-    private boolean clientScrollBarHooked = false;
 
     private final DecimalFormat priceFormat = new DecimalFormat("#,##0.00 'TND'");
 
@@ -454,25 +454,33 @@ public class AdminClientApp extends Application {
      * Attach a listener to the vertical scrollbar to snap to item boundaries.
      */
     private void hookClientScrollBar() {
-        if (clientScrollBarHooked) return;
         clientsListView.lookupAll(".scroll-bar").forEach(node -> {
             if (node instanceof ScrollBar) {
                 ScrollBar sb = (ScrollBar) node;
                 if (sb.getOrientation() == Orientation.VERTICAL) {
-                    final boolean[] adjusting = {false};
-                    sb.valueProperty().addListener((obs, oldVal, newVal) -> {
-                        if (adjusting[0]) return;
-                        int size = clientsListView.getItems().size();
-                        if (size <= 1) return;
-                        int target = (int) Math.round(newVal.doubleValue() * (size - 1));
-                        target = Math.max(0, Math.min(size - 1, target));
-                        adjusting[0] = true;
-                        clientsListView.getSelectionModel().select(target);
-                        clientsListView.scrollTo(target);
-                        sb.setValue(size == 1 ? 0 : (double) target / (double) (size - 1));
-                        adjusting[0] = false;
-                    });
-                    clientScrollBarHooked = true;
+                    // Keep unit increments aligned to items for arrow buttons
+                    double step = clientsListView.getItems().size() <= 1
+                        ? 1.0
+                        : 1.0 / (clientsListView.getItems().size() - 1);
+                    sb.setUnitIncrement(step);
+                    sb.setBlockIncrement(step);
+
+                    if (!Boolean.TRUE.equals(sb.getProperties().get("snap-listener-attached"))) {
+                        final boolean[] adjusting = {false};
+                        sb.valueProperty().addListener((obs, oldVal, newVal) -> {
+                            if (adjusting[0]) return;
+                            int size = clientsListView.getItems().size();
+                            if (size <= 1) return;
+                            int target = (int) Math.round(newVal.doubleValue() * (size - 1));
+                            target = Math.max(0, Math.min(size - 1, target));
+                            adjusting[0] = true;
+                            clientsListView.getSelectionModel().select(target);
+                            clientsListView.scrollTo(target);
+                            sb.setValue((double) target / (double) (size - 1));
+                            adjusting[0] = false;
+                        });
+                        sb.getProperties().put("snap-listener-attached", true);
+                    }
                 }
             }
         });
