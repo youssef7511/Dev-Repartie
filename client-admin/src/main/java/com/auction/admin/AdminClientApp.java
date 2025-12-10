@@ -4,6 +4,8 @@ import com.auction.common.constants.NetworkConfig;
 import com.auction.common.dto.Product;
 import com.auction.common.rmi.IAuctionAdmin;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -18,6 +20,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -44,6 +47,7 @@ public class AdminClientApp extends Application {
     private TableView<Product> historyTable;
     private TextArea logArea;
     private VBox controlsBox;
+    private Timeline clientsRefreshTimeline;
 
     private final DecimalFormat priceFormat = new DecimalFormat("#,##0.00 'TND'");
 
@@ -323,6 +327,7 @@ public class AdminClientApp extends Application {
                 refreshAuctionStatus();
                 refreshClientsList();
                 refreshHistory();
+                startClientsAutoRefresh();
             }
 
         } catch (Exception e) {
@@ -339,6 +344,7 @@ public class AdminClientApp extends Application {
     private void disconnect() {
         auctionAdmin = null;
         connected = false;
+        stopClientsAutoRefresh();
         updateConnectionStatus(false);
         addLog("🔌 Déconnecté du serveur");
     }
@@ -362,6 +368,7 @@ public class AdminClientApp extends Application {
             currentAuctionLabel.setText("Aucune enchère");
             currentPriceLabel.setText("Prix: ---.-- TND");
             currentBidderLabel.setText("Enchérisseur: -");
+            clientsListView.getItems().clear();
         }
     }
 
@@ -402,6 +409,28 @@ public class AdminClientApp extends Application {
             addLog("👥 " + clients.size() + " client(s) connecté(s)");
         } catch (Exception e) {
             addLog("❌ Erreur: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lance un rafraîchissement périodique de la liste des clients connectés.
+     */
+    private void startClientsAutoRefresh() {
+        if (clientsRefreshTimeline != null) {
+            clientsRefreshTimeline.stop();
+        }
+        clientsRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshClientsList()));
+        clientsRefreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        clientsRefreshTimeline.play();
+    }
+
+    /**
+     * Arrête le rafraîchissement périodique des clients.
+     */
+    private void stopClientsAutoRefresh() {
+        if (clientsRefreshTimeline != null) {
+            clientsRefreshTimeline.stop();
+            clientsRefreshTimeline = null;
         }
     }
 
