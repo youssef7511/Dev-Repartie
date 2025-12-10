@@ -72,16 +72,6 @@ Start-Process powershell -ArgumentList '-NoExit','-Command','cd .\client-buyer; 
 
 ---
 
-## 5. Technologies Utilisées
-
-| Technologie | Version | Usage |
-|-------------|---------|-------|
-| Java | 11+ | Langage principal |
-| JavaFX | 17.0.2 | Interfaces graphiques |
-| Maven | 3.6+ | Build & dépendances |
-| TCP/UDP Multicast | - | Communication client-serveur & diffusion |
-| Java RMI | - | Administration distante |
-
 ## 6. Configuration Réseau
 
 | Paramètre | Valeur | Description |
