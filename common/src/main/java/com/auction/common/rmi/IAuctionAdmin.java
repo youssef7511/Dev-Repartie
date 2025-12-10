@@ -40,7 +40,7 @@ public interface IAuctionAdmin extends Remote {
     
     /**
      * Obtient la liste des clients connectés
-     * @return Liste des identifiants des clients connectés
+     * @return Libellés des clients connectés (nom + ID, dernière offre éventuelle)
      */
     List<String> getConnectedClients() throws RemoteException;
     

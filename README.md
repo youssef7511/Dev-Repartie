@@ -9,7 +9,7 @@
 
 ## 📋 Table des Matières
 
-- [🏛️ La Salle des Ventes Distribuée (e-Auction)](#️-la-salle-des-ventes-distribuée-e-auction)
+- [🏛️ La Salle des Ventes Distribuée (e-Auction)](#-la-salle-des-ventes-distribuée-e-auction)
   - [📋 Table des Matières](#-table-des-matières)
   - [1. Description du Projet](#1-description-du-projet)
   - [2. Architecture Technique](#2-architecture-technique)

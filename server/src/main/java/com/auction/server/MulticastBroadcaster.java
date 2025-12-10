@@ -24,9 +24,9 @@ public class MulticastBroadcaster {
     }
     
     /**
-     * Initialise le socket Multicast
+     * Initialise le socket Multicast (surchargé en test pour éviter l'I/O réseau)
      */
-    private void initialize() {
+    protected void initialize() {
         try {
             socket = new MulticastSocket();
             group = InetAddress.getByName(multicastGroup);
