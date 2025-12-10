@@ -57,7 +57,7 @@ public class AdminClientApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("🖥️ e-Auction - Console Administration");
+        primaryStage.setTitle("🛠 e-Auction - Console Administration");
 
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(15));
@@ -87,7 +87,7 @@ public class AdminClientApp extends Application {
         box.setAlignment(Pos.CENTER_LEFT);
         box.setStyle("-fx-background-color: #37474f; -fx-background-radius: 10;");
 
-        Label title = new Label("🖥️ Console d'Administration e-Auction");
+        Label title = new Label("🛠 Console d'Administration e-Auction");
         title.setFont(Font.font("System", FontWeight.BOLD, 18));
         title.setTextFill(Color.WHITE);
 
