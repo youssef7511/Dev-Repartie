@@ -8,7 +8,6 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -52,6 +51,7 @@ public class AdminClientApp extends Application {
     private TextArea logArea;
     private VBox controlsBox;
     private Timeline clientsRefreshTimeline;
+    private Timeline auctionRefreshTimeline;
 
     private final DecimalFormat priceFormat = new DecimalFormat("#,##0.00 'TND'");
 
@@ -114,15 +114,21 @@ public class AdminClientApp extends Application {
         HBox dashboard = new HBox(15);
         dashboard.setPadding(new Insets(15, 0, 15, 0));
 
-        // Colonne gauche: Contrôles
+        // Colonne gauche: Statut + Contrôles
         VBox leftColumn = new VBox(15);
         leftColumn.setPrefWidth(350);
-        leftColumn.getChildren().addAll(createAuctionStatusPanel(), createControlsPanel(), createClientsPanel());
+        leftColumn.setFillWidth(true);
+        leftColumn.getChildren().addAll(createAuctionStatusPanel(), createControlsPanel());
+        HBox.setHgrow(leftColumn, Priority.ALWAYS);
 
-        // Colonne droite: Historique
+        // Colonne droite: Clients (principal) + Historique (compact)
         VBox rightColumn = new VBox(15);
         HBox.setHgrow(rightColumn, Priority.ALWAYS);
-        rightColumn.getChildren().add(createHistoryPanel());
+        VBox clientsPanel = createClientsPanel();
+        VBox historyPanel = createHistoryPanel();
+        VBox.setVgrow(clientsPanel, Priority.NEVER);
+        VBox.setVgrow(historyPanel, Priority.NEVER);
+        rightColumn.getChildren().addAll(clientsPanel, historyPanel);
 
         dashboard.getChildren().addAll(leftColumn, rightColumn);
         return dashboard;
@@ -135,6 +141,10 @@ public class AdminClientApp extends Application {
         VBox box = new VBox(10);
         box.setPadding(new Insets(15));
         box.setStyle("-fx-background-color: #455a64; -fx-background-radius: 10;");
+        box.setMinHeight(260);
+        box.setPrefHeight(320);
+        box.setMaxHeight(360);
+        VBox.setVgrow(box, Priority.NEVER);
 
         Label title = new Label("📊 Enchère en Cours");
         title.setFont(Font.font("System", FontWeight.BOLD, 14));
@@ -167,6 +177,10 @@ public class AdminClientApp extends Application {
         controlsBox.setPadding(new Insets(15));
         controlsBox.setStyle("-fx-background-color: #455a64; -fx-background-radius: 10;");
         controlsBox.setDisable(true);
+        controlsBox.setMinHeight(160);
+        controlsBox.setPrefHeight(200);
+        controlsBox.setMaxHeight(220);
+        VBox.setVgrow(controlsBox, Priority.NEVER);
 
         Label title = new Label("🎮 Contrôles");
         title.setFont(Font.font("System", FontWeight.BOLD, 14));
@@ -201,7 +215,10 @@ public class AdminClientApp extends Application {
         VBox box = new VBox(10);
         box.setPadding(new Insets(15));
         box.setStyle("-fx-background-color: #455a64; -fx-background-radius: 10;");
-        VBox.setVgrow(box, Priority.ALWAYS);
+        box.setMinHeight(260);
+        box.setPrefHeight(320);
+        box.setMaxHeight(360);
+        VBox.setVgrow(box, Priority.NEVER);
 
         Label title = new Label("👥 Clients Connectés");
         title.setFont(Font.font("System", FontWeight.BOLD, 14));
@@ -236,7 +253,9 @@ public class AdminClientApp extends Application {
         VBox box = new VBox(10);
         box.setPadding(new Insets(15));
         box.setStyle("-fx-background-color: #455a64; -fx-background-radius: 10;");
-        VBox.setVgrow(box, Priority.ALWAYS);
+        box.setMinHeight(160);
+        box.setPrefHeight(200);
+        box.setMaxHeight(220);
 
         Label title = new Label("📜 Historique des Ventes");
         title.setFont(Font.font("System", FontWeight.BOLD, 14));
@@ -244,7 +263,9 @@ public class AdminClientApp extends Application {
 
         historyTable = new TableView<>();
         historyTable.setStyle("-fx-background-color: #546e7a;");
-        VBox.setVgrow(historyTable, Priority.ALWAYS);
+        historyTable.setPrefHeight(140);
+        historyTable.setMaxHeight(160);
+        VBox.setVgrow(historyTable, Priority.NEVER);
 
         TableColumn<Product, String> nameCol = new TableColumn<>("Produit");
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -334,6 +355,7 @@ public class AdminClientApp extends Application {
                 refreshClientsList();
                 refreshHistory();
                 startClientsAutoRefresh();
+                startAuctionAutoRefresh();
             }
 
         } catch (Exception e) {
@@ -351,6 +373,7 @@ public class AdminClientApp extends Application {
         auctionAdmin = null;
         connected = false;
         stopClientsAutoRefresh();
+        stopAuctionAutoRefresh();
         updateConnectionStatus(false);
         addLog("🔌 Déconnecté du serveur");
     }
@@ -412,6 +435,7 @@ public class AdminClientApp extends Application {
         try {
             List<String> clients = auctionAdmin.getConnectedClients();
             clientsListView.setItems(FXCollections.observableArrayList(clients));
+            adjustClientScrollBarStep();
             addLog("👥 " + clients.size() + " client(s) connecté(s)");
         } catch (Exception e) {
             addLog("❌ Erreur: " + e.getMessage());
@@ -487,6 +511,26 @@ public class AdminClientApp extends Application {
     }
 
     /**
+     * Update scrollbar increments after the list size changes so arrows move exactly one item.
+     */
+    private void adjustClientScrollBarStep() {
+        Platform.runLater(() -> {
+            clientsListView.lookupAll(".scroll-bar").forEach(node -> {
+                if (node instanceof ScrollBar) {
+                    ScrollBar sb = (ScrollBar) node;
+                    if (sb.getOrientation() == Orientation.VERTICAL) {
+                        double step = clientsListView.getItems().size() <= 1
+                            ? 1.0
+                            : 1.0 / (clientsListView.getItems().size() - 1);
+                        sb.setUnitIncrement(step);
+                        sb.setBlockIncrement(step);
+                    }
+                }
+            });
+        });
+    }
+
+    /**
      * Lance un rafraîchissement périodique de la liste des clients connectés.
      */
     private void startClientsAutoRefresh() {
@@ -505,6 +549,25 @@ public class AdminClientApp extends Application {
         if (clientsRefreshTimeline != null) {
             clientsRefreshTimeline.stop();
             clientsRefreshTimeline = null;
+        }
+    }
+
+    /**
+     * Rafraîchit périodiquement le statut de l'enchère en cours.
+     */
+    private void startAuctionAutoRefresh() {
+        if (auctionRefreshTimeline != null) {
+            auctionRefreshTimeline.stop();
+        }
+        auctionRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshAuctionStatus()));
+        auctionRefreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        auctionRefreshTimeline.play();
+    }
+
+    private void stopAuctionAutoRefresh() {
+        if (auctionRefreshTimeline != null) {
+            auctionRefreshTimeline.stop();
+            auctionRefreshTimeline = null;
         }
     }
 

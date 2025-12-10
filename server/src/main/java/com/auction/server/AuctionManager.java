@@ -3,6 +3,7 @@ package com.auction.server;
 import com.auction.common.dto.*;
 import com.auction.common.dto.Message.MessageType;
 
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -31,11 +32,17 @@ public class AuctionManager {
     // Diffuseur Multicast
     private final MulticastBroadcaster broadcaster;
     
+    // Dernière enchère par client (par vente)
+    private final Map<String, Double> lastBids;
+    
+    private final DecimalFormat priceFormat = new DecimalFormat("#,##0.00 'TND'");
+    
     public AuctionManager(MulticastBroadcaster broadcaster) {
         this.broadcaster = broadcaster;
         this.salesHistory = Collections.synchronizedList(new ArrayList<>());
         this.connectedClients = new ConcurrentHashMap<>();
         this.bannedClients = Collections.synchronizedSet(new HashSet<>());
+        this.lastBids = new ConcurrentHashMap<>();
     }
     
     /**
@@ -58,6 +65,7 @@ public class AuctionManager {
             String productId = UUID.randomUUID().toString().substring(0, 8);
             currentProduct = new Product(productId, productName, description, startingPrice);
             currentProduct.setActive(true);
+            lastBids.clear();
             
             System.out.println("[AUCTION] Nouvelle enchère démarrée: " + productName + " - " + startingPrice + " TND");
             
@@ -99,6 +107,7 @@ public class AuctionManager {
             currentProduct.setCurrentPrice(bid.getAmount());
             currentProduct.setHighestBidderId(bid.getClientId());
             currentProduct.setHighestBidderName(bid.getClientName());
+            lastBids.put(bid.getClientId(), bid.getAmount());
             
             System.out.println("[AUCTION] Enchère acceptée: " + bid.getAmount() + " TND par " + bid.getClientName());
             
@@ -180,6 +189,7 @@ public class AuctionManager {
             
             // Réinitialiser le produit courant
             currentProduct = null;
+            lastBids.clear();
             
             return soldProduct;
         } finally {
@@ -211,6 +221,7 @@ public class AuctionManager {
             broadcastToClients(notification);
             
             currentProduct = null;
+            lastBids.clear();
             return true;
         } finally {
             bidLock.unlock();
@@ -228,6 +239,7 @@ public class AuctionManager {
         }
         
         bannedClients.add(clientId);
+        lastBids.remove(clientId);
         
         // Notifier le client s'il est connecté
         ClientHandler handler = connectedClients.get(clientId);
@@ -260,6 +272,7 @@ public class AuctionManager {
      */
     public void unregisterClient(String clientId) {
         connectedClients.remove(clientId);
+        lastBids.remove(clientId);
         System.out.println("[AUCTION] Client désenregistré: " + clientId);
     }
     
@@ -287,7 +300,12 @@ public class AuctionManager {
     public List<String> getConnectedClientNames() {
         List<String> names = new ArrayList<>();
         for (ClientHandler handler : connectedClients.values()) {
-            names.add(handler.getClientName() + " (" + handler.getClientId() + ")");
+            String label = handler.getClientName() + " (" + handler.getClientId() + ")";
+            Double bid = lastBids.get(handler.getClientId());
+            if (bid != null) {
+                label += " - Offre: " + priceFormat.format(bid);
+            }
+            names.add(label);
         }
         return names;
     }
