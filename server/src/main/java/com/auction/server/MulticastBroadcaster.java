@@ -8,7 +8,7 @@ import java.net.*;
 
 /**
  * Diffuseur Multicast pour envoyer les mises à jour en temps réel
- * à tous les clients connectés (cf. TP4, TP5)
+ * à tous les clients connectés
  */
 public class MulticastBroadcaster {
     

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * Client Administrateur RMI (cf. TP6)
+ * Client Administrateur RMI
  * Permet de contrôler le serveur d'enchères à distance
  */
 public class AdminClient {

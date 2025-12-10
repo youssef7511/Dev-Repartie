@@ -8,8 +8,7 @@ import java.net.Socket;
 import java.util.UUID;
 
 /**
- * Gestionnaire de connexion pour un client TCP
- * Un thread par client (cf. TP3)
+ * Gestionnaire de connexion pour un client TCP (un thread par client)
  */
 public class ClientHandler implements Runnable {
     

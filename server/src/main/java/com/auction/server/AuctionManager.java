@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Gestionnaire central des enchères
- * Gère la synchronisation des accès concurrents (cf. TP5)
+ * Gère la synchronisation des accès concurrents.
  */
 public class AuctionManager {
     

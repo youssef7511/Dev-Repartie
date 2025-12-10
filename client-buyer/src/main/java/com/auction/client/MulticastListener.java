@@ -8,7 +8,7 @@ import java.net.*;
 import java.util.function.Consumer;
 
 /**
- * Listener Multicast pour recevoir les mises à jour en temps réel (cf. TP4, TP5)
+ * Listener Multicast pour recevoir les mises à jour en temps réel
  */
 public class MulticastListener implements Runnable {
     

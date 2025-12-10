@@ -9,7 +9,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
 
 /**
- * Implémentation du service RMI pour l'administration des enchères (cf. TP6)
+ * Implémentation du service RMI pour l'administration des enchères.
  */
 public class AuctionAdminImpl extends UnicastRemoteObject implements IAuctionAdmin {
     
