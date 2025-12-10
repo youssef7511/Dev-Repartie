@@ -17,8 +17,7 @@
 2. [Architecture Technique](#2-architecture-technique)
 3. [Instructions d'Installation](#3-instructions-dinstallation)
 4. [Exécution](#4-exécution)
-5. [Technologies Utilisées](#5-technologies-utilisées)
-6. [Configuration Réseau](#6-configuration-réseau)
+5. [Configuration Réseau](#5-configuration-réseau)
 
 ---
 
@@ -29,8 +28,42 @@ Système d'enchères électroniques en temps réel. Acheteurs multiples via TCP 
 ## 2. Architecture Technique
 
 ```
-Clients Acheteurs (TCP + Multicast)  <----> Serveur d'Enchères (TCP + RMI + Multicast) <----> Client Admin (RMI)
+┌─────────────────────────────────────────────────────────────────┐
+│                    ARCHITECTURE e-AUCTION                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│   ┌──────────────┐         TCP/Socket          ┌─────────────┐  │
+│   │   Client     │◄───────────────────────────►│             │  │
+│   │  Acheteur A  │                             │             │  │
+│   └──────────────┘                             │             │  │
+│          ▲                                     │   SERVEUR   │  │
+│          │ Multicast (225.1.1.1:6000)          │  D'ENCHÈRES │  │
+│          ▼                                     │  (Port 5000)│  │
+│   ┌──────────────┐         TCP/Socket          │             │  │
+│   │   Client     │◄───────────────────────────►│             │  │
+│   │  Acheteur B  │                             │             │  │
+│   └──────────────┘                             └──────┬──────┘  │
+│                                                       │         │
+│                                                       │ RMI     │
+│                                                       │ (1099)  │
+│                                                       ▼         │
+│                                                ┌─────────────┐  │
+│                                                │    Admin    │  │
+│                                                │   (RMI)     │  │
+│                                                └─────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
 ```
+
+### Composants
+
+| Composant | Description | Technologies |
+|-----------|-------------|--------------|
+| **Server** | Serveur central d'enchères | TCP + Multicast + RMI |
+| **Client Buyer** | Interface graphique Swing pour enchérir | TCP + Multicast Listener |
+| **Client Admin** | Console d'administration | RMI |
+| **Common** | Classes partagées (DTOs, interfaces) | Java Serialization |
+
+---
 
 ## 3. Instructions d'Installation
 
@@ -72,7 +105,7 @@ Start-Process powershell -ArgumentList '-NoExit','-Command','cd .\client-buyer; 
 
 ---
 
-## 6. Configuration Réseau
+## 5. Configuration Réseau
 
 | Paramètre | Valeur | Description |
 |-----------|--------|-------------|
