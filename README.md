@@ -179,6 +179,21 @@ mvn -DskipTests clean install
 
 ### Exécution
 
+#### Version console (legacy)
+
+```powershell
+# Serveur
+Start-Process powershell -ArgumentList '-NoExit','-Command','cd .\\server; mvn exec:java ''-Dexec.mainClass=com.auction.server.AuctionServer'''
+
+# Admin (console)
+Start-Process powershell -ArgumentList '-NoExit','-Command','cd .\\client-admin; mvn exec:java ''-Dexec.mainClass=com.auction.admin.AdminClient'''
+
+# Acheteur (console)
+Start-Process powershell -ArgumentList '-NoExit','-Command','cd .\\client-buyer; mvn exec:java ''-Dexec.mainClass=com.auction.client.BuyerClient'''
+```
+
+#### Version JavaFX (UI)
+
 **Étape 1 - Démarrer le Serveur :**
 
 ```powershell
